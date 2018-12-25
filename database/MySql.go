@@ -1,13 +1,10 @@
-package SWMySql
+package database
 
 import (
 	"database/sql"
     _ "github.com/go-sql-driver/mysql"
-    _ "github.com/lib/pq"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"encoding/json"
-    "bytes"
 )
 
 type SWSql struct {
@@ -29,14 +26,7 @@ func (m *SWSql) Close() error {
 */
 func StartDB(name string) (*SWSql, error) {
 	//open database
-	// db, err := sql.Open(Path, "root:@tcp(127.0.0.1:3306)/test?parseTime=true")
-	psqlInfo := fmt.Sprintf("host=localhost port=5433 user= wyj16340227"+
-        "password=wyj970720 dbname=" + name + " sslmode=disable")
-    db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-        fmt.Println(err);
-        return
-    }
+	db, err := sql.Open(name, "root:@tcp(127.0.0.1:3306)/testuser?parseTime=true")
 	fmt.Println("Open the database: " + name)
 	if err != nil {
 		return nil, err
@@ -51,6 +41,7 @@ func StartDB(name string) (*SWSql, error) {
 **	tables is empty
 */
 func (m *SWSql) InitDB() {
+	fmt.Println("Initial DB")
 	//get connection
 	tx,_ := m.db.Begin()
 	//create table
@@ -61,9 +52,9 @@ func (m *SWSql) InitDB() {
 	tx.Exec("CREATE TABLE starships (ID char(10), Mes char(1000))")
 	tx.Exec("CREATE TABLE vehicles (ID char(10), Mes char(1000))")
 	tx.Exec("CREATE TABLE user (Token char(50), Name char(1000))")
-    //fresh the connection of tx
-    //commit connection
-    tx.Commit()
+    	//fresh the connection of tx
+    	//commit connection
+    	tx.Commit()
 
 	// _, err := tx.CreatetableIfNotExists([]byte("films"))
 	// _, err = tx.CreatetableIfNotExists([]byte("people"))
@@ -100,39 +91,9 @@ func (m *SWSql) AddObj(table string, ID string, Mes string) (error) {
 func (m *SWSql) DeleteObj(table string, key string) (error) {
 	//construct command
 	com := "DELETE FROM " + string(table) + " WHERE ID = ?"
-	res, err := db.Exec(com, key)
+	res, err := m.db.Exec(com, key)
 	fmt.Println(res)
 	return err
-}
-
-/*
-**	check object exsist or not by name
-**	has 2 arguement
-**	table: tables type, as films, people, etc
-**	key: object name
-**	return bool
-*/
-func (m *SWSql) HasObj (table string, name []byte) (bool) {
-	flag := false
-	rows, err := db.Query("SELECT ID from user where id = ?", 1)
-	if err != nil {
-		log.Println(err)
-	}
- 
-	com := "SELECT * FROM " + table
-	rows, err := db.Query(com)
-	for rows.Next() {
-		var ID string
-		var Mes string
-		err = rows.Scan(&ID, &Mes)
-		json.Unmarshal(v, &p)
-	}
-	defer rows.Close()
-    if (flag) {
-    	return true
-    } else {
-    	return false
-    }
 }
 
 /*
@@ -144,14 +105,14 @@ func (m *SWSql) HasObj (table string, name []byte) (bool) {
 */
 func (m *SWSql) SearchByID (table string, ID string) (string) {
 	com := "SELECT ID FROM " + table + " WHERE ID = ?"
-	rows, err := m.db.Query(com, ID)
-	var ID string
+	rows, _ := m.db.Query(com, ID)
+	var cID string
 	var Mes string
 	for rows.Next() {
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&cID, &Mes)
 	}
 	defer rows.Close()
-    return Mes
+    	return Mes
 }
 
 /*
@@ -163,20 +124,20 @@ func (m *SWSql) SearchByID (table string, ID string) (string) {
 func (m *SWSql) SearchFilmByName (name string) (string) {
 	var p Film
 	com := "SELECT * FROM films"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&ID, &Mes)
 		json.Unmarshal([]byte(Mes), &p)
-		if p.getName() == string(name) {
+		if p.getName() == name {
 			res = Mes
 			break
 		}
 	}
 	defer rows.Close()
-    return res
+    	return res
 }
 
 /*
@@ -188,20 +149,20 @@ func (m *SWSql) SearchFilmByName (name string) (string) {
 func (m *SWSql) SearchPersonByName (name string) (string) {
 	var p Person
 	com := "SELECT * FROM people"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&ID, &Mes)
 		json.Unmarshal([]byte(Mes), &p)
-		if p.getName() == string(name) {
+		if p.getName() == name {
 			res = Mes
 			break
 		}
 	}
 	defer rows.Close()
-    return res
+    	return res
 }
 
 /*
@@ -213,20 +174,20 @@ func (m *SWSql) SearchPersonByName (name string) (string) {
 func (m *SWSql) SearchPlanetByName (name string) (string) {
     var p Planet
 	com := "SELECT * FROM planets"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&ID, &Mes)
 		json.Unmarshal([]byte(Mes), &p)
-		if p.getName() == string(name) {
+		if p.getName() == name {
 			res = Mes
 			break
 		}
 	}
 	defer rows.Close()
-    return res
+    	return res
 }
 
 /*
@@ -238,20 +199,20 @@ func (m *SWSql) SearchPlanetByName (name string) (string) {
 func (m *SWSql) SearchSpeciesByName (name string) (string) {
 	var p Species
 	com := "SELECT * FROM species"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&ID, &Mes)
 		json.Unmarshal([]byte(Mes), &p)
-		if p.getName() == string(name) {
+		if p.getName() == name {
 			res = Mes
 			break
 		}
 	}
 	defer rows.Close()
-    return res
+    	return res
 }
 
 /*
@@ -263,20 +224,20 @@ func (m *SWSql) SearchSpeciesByName (name string) (string) {
 func (m *SWSql) SearchStarshipByName (name string) (string) {
 	var p Starship
 	com := "SELECT * FROM starships"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&ID, &Mes)
 		json.Unmarshal([]byte(Mes), &p)
-		if p.getName() == string(name) {
+		if p.getName() == name {
 			res = Mes
 			break
 		}
 	}
 	defer rows.Close()
-    return res
+    	return res
 }
 
 /*
@@ -288,44 +249,43 @@ func (m *SWSql) SearchStarshipByName (name string) (string) {
 func (m *SWSql) SearchVehicleByName (name string) (string) {
 	var p Vehicle
 	com := "SELECT * FROM vehicles"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
+		rows.Scan(&ID, &Mes)
 		json.Unmarshal([]byte(Mes), &p)
-		if p.getName() == string(name) {
+		if p.getName() == name {
 			res = Mes
 			break
 		}
 	}
 	defer rows.Close()
-    return res
+    	return res
 }
 
 /*
-**	check log in or not
+**	check  in or not
 **	has 1 arguement
 **	Token: Token
 **	return bool
 */
 func  (m *SWSql) IsLogIn (Token string) (bool) {
 	flag := false
-    com := "SELECT * FROM user"
-	rows, err := db.Query(com)
-	var res string
+    	com := "SELECT * FROM user"
+	rows, _ := m.db.Query(com)
 	for rows.Next() {
 		var thisToken string
 		var thisName string
-		err = rows.Scan(&thisToken, &thisName)
+		rows.Scan(&thisToken, &thisName)
 		if thisToken == Token {
 			flag = true
 			break
 		}
 	}
 	defer rows.Close()
-    return flag
+    	return flag
 }
 
 /*
@@ -350,24 +310,23 @@ func (m *SWSql) LogIn(name string, Token string) (error) {
 **	page: page number
 */
 func (m *SWSql) SearchByPage (table string, page int) (string) {
-	var res string
 	endNum := 5 * page
 	startNum := endNum - 5
 	currentNum := 0
 	com := "SELECT * FROM vehicles"
-	rows, err := db.Query(com)
+	rows, _ := m.db.Query(com)
 	var res string
 	for rows.Next() {
 		var ID string
 		var Mes string
-		err = rows.Scan(&ID, &Mes)
-    	if currentNum < endNum && currentNum >= startNum {
-    		res = res + Mes
-    	}
+		rows.Scan(&ID, &Mes)
+    		if currentNum < endNum && currentNum >= startNum {
+    			res = res + Mes
+    		}
 		currentNum++
 		if currentNum == endNum {
 			break
 		}
-    }
-    return res
+    	}
+    	return res
 }
