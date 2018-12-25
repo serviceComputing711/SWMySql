@@ -33,9 +33,8 @@ func GetInfor(DBPath string) {
 		film := dump(c.Film(i))
 		//transport json to data
 		data, _ := json.Marshal(film)
-		b := []byte(data)
 		//add information to db
-		db.AddObj("films", []byte(strconv.Itoa(i)), b)
+		db.AddObj("films", strconv.Itoa(i), string(data))
 		// //write in file
     	// fd.Write(b)
 	}
@@ -50,8 +49,7 @@ func GetInfor(DBPath string) {
 		c := swapi.DefaultClient
 		people := dump(c.Person(i))
 		data, _ := json.Marshal(people)
-		b := []byte(data)
-		db.AddObj("people", []byte(strconv.Itoa(i)), b)
+		db.AddObj("people", strconv.Itoa(i), string(data))
     	// fd.Write(b)
 	}
     // fd.Close()
@@ -65,8 +63,7 @@ func GetInfor(DBPath string) {
 		c := swapi.DefaultClient
 		planet := dump(c.Planet(i))
 		data, _ := json.Marshal(planet)
-		b := []byte(data)
-		db.AddObj("planets", []byte(strconv.Itoa(i)), b)
+		db.AddObj("planets", strconv.Itoa(i), string(data))
     	// fd.Write(b)
 	}
     // fd.Close()
@@ -80,8 +77,7 @@ func GetInfor(DBPath string) {
 		c := swapi.DefaultClient
 		species := dump(c.Species(i))
 		data, _ := json.Marshal(species)
-		b := []byte(data)
-		db.AddObj("species", []byte(strconv.Itoa(i)), b)
+		db.AddObj("species", strconv.Itoa(i), string(data))
     	// fd.Write(b)
 	}
     // fd.Close()
@@ -95,8 +91,7 @@ func GetInfor(DBPath string) {
 		c := swapi.DefaultClient
 		starships := dump(c.Starship(i))
 		data, _ := json.Marshal(starships)
-		b := []byte(data)
-		db.AddObj("starships", []byte(strconv.Itoa(i)), b)
+		db.AddObj("starships", strconv.Itoa(i), string(data))
     	// fd.Write(b)
 	}
     // fd.Close()
@@ -110,8 +105,7 @@ func GetInfor(DBPath string) {
 		c := swapi.DefaultClient
 		vehicles := dump(c.Vehicle(i))
 		data, _ := json.Marshal(vehicles)
-		b := []byte(data)
-		db.AddObj("vehicles", []byte(strconv.Itoa(i)), b)
+		db.AddObj("vehicles", strconv.Itoa(i), string(data))
     	// fd.Write(b)
 	}
     // fd.Close()
